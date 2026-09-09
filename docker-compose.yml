@@ -1,0 +1,43 @@
+services:
+  # ---------- Base de datos del blackout-back-sett ----------
+  players-db:
+    image: postgres:16-alpine
+    container_name: players-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: players_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5433:5432" # 5433 en el host para no chocar con un Postgres local en 5432
+    volumes:
+      - players_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d players_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # ---------- blackout-back-sett ----------
+  blackout-back-sett:
+    build: ./blackout-back-sett
+    container_name: blackout-back-sett
+    restart: unless-stopped
+    ports:
+      - "8081:8081"
+    environment:
+      DB_HOST: players-db
+      DB_PORT: 5432
+      DB_NAME: players_db
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      CORS_ORIGINS: http://localhost:3000
+    depends_on:
+      players-db:
+        condition: service_healthy
+
+  # A medida que agreguemos catalog-service, orders-service, etc.,
+  # cada uno se suma aquí con su propio bloque + su propia BD.
+
+volumes:
+  players_db_data:
