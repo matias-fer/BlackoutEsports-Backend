@@ -1,0 +1,37 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: blackout-back-sett
+
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5433}/${DB_NAME:players_db}
+    username: ${DB_USER:postgres}
+    password: ${DB_PASSWORD:postgres}
+    driver-class-name: org.postgresql.Driver
+
+  sql:
+    init:
+      # Por defecto Spring solo corre data.sql en BD embebidas; con Postgres hay que forzarlo.
+      mode: always
+
+  jpa:
+    # Espera a que Hibernate cree las tablas antes de correr data.sql
+    defer-datasource-initialization: true
+    hibernate:
+      # "update" en desarrollo. En producción usar migraciones (Flyway/Liquibase) y "validate".
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+    open-in-view: false
+
+app:
+  cors:
+    allowed-origins: ${CORS_ORIGINS:http://localhost:3000}
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
