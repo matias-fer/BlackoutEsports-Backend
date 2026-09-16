@@ -31,13 +31,15 @@ services:
       DB_NAME: players_db
       DB_USER: postgres
       DB_PASSWORD: postgres
-      CORS_ORIGINS: http://localhost:3000
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:5173,http://localhost:3000,http://localhost:3001}
+      ENTRA_ISSUER: ${ENTRA_ISSUER}
+      ENTRA_AUDIENCE: ${ENTRA_AUDIENCE}
+      ENTRA_SCOPE: ${ENTRA_SCOPE:-access_as_user}
+      COGNITO_ISSUER: ${COGNITO_ISSUER}
+      COGNITO_CLIENT_ID: ${COGNITO_CLIENT_ID}
     depends_on:
       players-db:
         condition: service_healthy
-
-  # A medida que agreguemos catalog-service, orders-service, etc.,
-  # cada uno se suma aquí con su propio bloque + su propia BD.
 
 volumes:
   players_db_data:

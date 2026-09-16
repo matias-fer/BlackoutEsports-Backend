@@ -1,4 +1,4 @@
-# Blackout Back Sett — Backend (microservicios)
+# Blackout Esports — Backend de jugadores
 
 ## Estructura
 
@@ -49,7 +49,32 @@ Con todo levantado, abre en el navegador:
 http://localhost:8081/swagger-ui.html
 ```
 
-Ahí puedes probar todos los endpoints (GET, POST, PUT, DELETE) desde una interfaz visual.
+Pulsa **Authorize** e ingresa un Access Token válido antes de probar los endpoints.
+
+## Autenticación y permisos
+
+Este servicio acepta Access Tokens JWT emitidos por los dos proveedores del proyecto:
+
+- **Microsoft Entra ID:** los roles de aplicación `Admin` y `Staff` pueden leer, crear, editar y eliminar.
+- **AWS Cognito:** los fans autenticados pueden leer. Aunque un token de Cognito contenga una etiqueta `Admin`, el backend siempre lo trata como `Fan`.
+
+Todos los `GET` exigen un token válido. `POST`, `PUT` y `DELETE` exigen un Access Token de Entra con rol `Admin` o `Staff`.
+El servidor comprueba firma, emisor, vencimiento y sujeto. Para Entra también comprueba la audiencia y el scope
+`access_as_user`; para Cognito comprueba `token_use=access` y el `client_id`. Un token de Microsoft Graph
+(`User.Read` o audiencia de Graph) no sirve para llamar esta API.
+
+Copia `.env.example` a `.env` y completa:
+
+| Variable | Valor esperado |
+|---|---|
+| `ENTRA_ISSUER` | `https://login.microsoftonline.com/<tenant-id>/v2.0` |
+| `ENTRA_AUDIENCE` | El valor exacto de `aud` emitido para la API de Blackout |
+| `ENTRA_SCOPE` | `access_as_user` |
+| `COGNITO_ISSUER` | `https://cognito-idp.<region>.amazonaws.com/<user-pool-id>` |
+| `COGNITO_CLIENT_ID` | ID del cliente web de Cognito |
+
+El frontend administrativo debe solicitar `api://<id-aplicacion-api>/access_as_user`, además de los scopes de Graph
+que use por separado. Los roles `Admin` y `Staff` deben estar definidos como roles de aplicación y asignados a los usuarios.
 
 ### Endpoints principales
 
@@ -115,6 +140,13 @@ El `id` es opcional: si no lo envías, se genera automáticamente como slug a pa
    - Si tu Postgres no usa usuario/clave `postgres`/`postgres` o no corre en el puerto 5433,
      ajusta las variables de entorno `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD` antes de correrlo.
 
-## Conectar desde el frontend (Next.js)
+## Conectar desde el frontend (React + Vite)
 
-El CORS ya está configurado para aceptar peticiones desde `http://localhost:3000` (el puerto por defecto de Next.js). Si usas otro puerto, cambia la variable `CORS_ORIGINS` en el `docker-compose.yml`.
+El CORS admite por defecto `http://localhost:5173`, `http://localhost:3000` y `http://localhost:3001`.
+Cada petición debe enviar `Authorization: Bearer <access_token>`.
+
+## Pruebas
+
+Dentro de `blackout-back-sett/`, ejecuta `mvn clean verify`. Las pruebas usan H2 y tokens RSA locales;
+no llaman a Entra ni a Cognito. Cubren CRUD, permisos, firma, emisor, audiencia, scope, vencimiento,
+tipo de token Cognito, cliente Cognito, CORS y Swagger.
