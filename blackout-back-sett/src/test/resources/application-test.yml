@@ -10,3 +10,10 @@ spring:
   sql:
     init:
       mode: never
+app:
+  security:
+    entra-issuer: https://login.microsoftonline.com/test-tenant/v2.0
+    entra-audience: test-api
+    entra-scope: access_as_user
+    cognito-issuer: https://cognito-idp.us-east-1.amazonaws.com/test-pool
+    cognito-client-id: test-fan-client
