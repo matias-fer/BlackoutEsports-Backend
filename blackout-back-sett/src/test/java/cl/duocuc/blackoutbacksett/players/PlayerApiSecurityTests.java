@@ -71,8 +71,8 @@ class PlayerApiSecurityTests {
     }
 
     @Test
-    void endpointsRechazanAusenciaOTokenInvalido() throws Exception {
-        mvc.perform(get("/api/players")).andExpect(status().isUnauthorized());
+    void lecturaEsPublicaYEscrituraRechazaAusenciaOTokenInvalido() throws Exception {
+        mvc.perform(get("/api/players")).andExpect(status().isOk());
         mvc.perform(post("/api/players").contentType(MediaType.APPLICATION_JSON).content(BODY))
                 .andExpect(status().isUnauthorized());
         mvc.perform(get("/api/players").header("Authorization", "Bearer incorrecto"))
